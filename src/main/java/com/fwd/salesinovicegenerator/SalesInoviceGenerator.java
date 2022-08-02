@@ -5,13 +5,21 @@
 
 package com.fwd.salesinovicegenerator;
 
+import com.fwd.view.MainFrame;
+
 /**
  *
  * @author ziada
  */
 public class SalesInoviceGenerator {
 
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+    public static void main(String args[]) {
+
+        
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new MainFrame().setVisible(true);
+            }
+        });
     }
 }
