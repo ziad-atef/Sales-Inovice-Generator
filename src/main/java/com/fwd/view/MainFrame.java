@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -149,6 +150,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
 
         SaveMenuItem.setText("Save File");
         FileMenu.add(SaveMenuItem);
+        SaveMenuItem.addActionListener(this);
 
         jMenuBar1.add(FileMenu);
 
@@ -240,6 +242,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
                 .addContainerGap(19, Short.MAX_VALUE))
         );
 
+        DeleteInoviceButton.addActionListener(this);
         SaveButton.addActionListener(this);
 
         pack();
@@ -289,21 +292,29 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
             try{
                 loadFile();
             }catch(Exception ex){
+                JOptionPane.showMessageDialog(this, "Load exception", "Test", JOptionPane.INFORMATION_MESSAGE);
                 ex.printStackTrace();
             }
-            
         }
-        else if( e.getActionCommand().equals("Save File") ){}
+        else if( e.getActionCommand().equals("Save File") ){
+            try{
+                saveFile();
+            }catch(Exception ex){
+                JOptionPane.showMessageDialog(this, "Save exception", "Test", JOptionPane.INFORMATION_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
         else if( e.getActionCommand().equals("Create new inovic") ){}
         else if( e.getActionCommand().equals("Delete inovice") ){
             if( SelectedRow != null){
+                JOptionPane.showMessageDialog(this, "Deleting Inovice", "Test", JOptionPane.INFORMATION_MESSAGE);
                 for(InoviceHeader Header : FileData){
                     if(Header.getInoviceNumber() == SelectedRow.getInoviceNumber()){
                         FileData.remove(Header);
                         break;
                     }
                 }
-                updateHeaderTable(FileData);
+                
             }
         }
         else if( e.getActionCommand().equals("Save") ){
@@ -403,6 +414,30 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         }
         updateHeaderTable(FileData);
     }
+    
+    private void saveFile() throws Exception{
+        JFileChooser window = new JFileChooser();
+        JOptionPane.showMessageDialog(this, "Please choose header file", "Header File", JOptionPane.INFORMATION_MESSAGE);
+        int Result = window.showSaveDialog(this);
+        
+        if(Result == JFileChooser.APPROVE_OPTION){
+            String Path = window.getSelectedFile().getPath();
+            if(!Path.contains(".csv"))
+                Path += ".csv";
+            FileOutputStream Stream = new FileOutputStream(Path);
+
+            
+            for(InoviceHeader Header : FileData){
+                String Data = Header.getInoviceNumber()  + "," + Header.getInoviceDate().toString() + "," + Header.getCustomerName();
+                byte [] Line= Data.getBytes();
+                Stream.write(Line);
+            }
+            
+            Stream.close();
+            
+
+        }
+    }
 
     private void updateHeaderTable(ArrayList<InoviceHeader> Headers){
         String[] col = {"No.", "Date", "Costumer", "Total"};
@@ -412,8 +447,9 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         for(InoviceHeader Header: FileData){
             Object[] obj = {Header.getInoviceNumber(), Header.getInoviceDate(), Header.getCustomerName(), Header.getTotal()};
             tableModel.addRow(obj);
-            HeaderTable.setModel(tableModel);
         }
+        HeaderTable.setModel(tableModel);
+        HeaderTable.revalidate();
     }
     
     private void updateLineTable(ArrayList<InoviceLine> Lines){
