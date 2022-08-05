@@ -10,8 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -30,13 +33,16 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
 
     ArrayList<InoviceHeader> FileData;
     InoviceHeader SelectedRow;
+    DefaultTableModel HeaderModel;
     /**
      * Creates new form MainFrame
      */
     public MainFrame() {
-        initComponents();
+        HeaderModel = new DefaultTableModel(new String [] {"Inovice Number", "Invoice Date", "Customer Name", "Total"},0);
         FileData = new ArrayList<>();
         SelectedRow = null;
+        initComponents();
+        
     }
 
     /**
@@ -48,8 +54,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        HeaderTable = new javax.swing.JTable();
+        jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         InoviceNumber = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -60,14 +65,17 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         DateTextPane = new javax.swing.JTextPane();
         jScrollPane3 = new javax.swing.JScrollPane();
         NameTextPane = new javax.swing.JTextPane();
-        CreateNewInoviceButton = new javax.swing.JButton();
-        DeleteInoviceButton = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
         LineTable = new javax.swing.JTable();
         SaveButton = new javax.swing.JButton();
         CancelButton = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        HeaderTable = new javax.swing.JTable();
+        DeleteInoviceButton = new javax.swing.JButton();
+        CreateNewInoviceButton = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         FileMenu = new javax.swing.JMenu();
         LoadMenuItem = new javax.swing.JMenuItem();
@@ -77,22 +85,6 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sales Inovice Generator");
         setFocusTraversalPolicyProvider(true);
-
-        HeaderTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "No.", "Date", "Costumer", "Total"
-            }
-        ));
-        HeaderTable.setName("HeaderTable"); // NOI18N
-        HeaderTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        HeaderTable.getSelectionModel().addListSelectionListener(this);
-        jScrollPane1.setViewportView(HeaderTable);
 
         jLabel1.setText("Inovice Number");
 
@@ -109,15 +101,6 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         jScrollPane2.setViewportView(DateTextPane);
 
         jScrollPane3.setViewportView(NameTextPane);
-
-        CreateNewInoviceButton.setText("Create new inovice");
-
-        DeleteInoviceButton.setText("Delete inovice");
-        DeleteInoviceButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                DeleteInoviceButtonActionPerformed(evt);
-            }
-        });
 
         LineTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -137,9 +120,127 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
 
         CancelButton.setText("Cancel");
 
+        jLabel8.setText("Inovice items:");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(35, 35, 35)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel8))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGap(25, 25, 25)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addGap(42, 42, 42)
+                                .addComponent(InoviceTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addGap(25, 25, 25)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(25, 25, 25)
+                        .addComponent(InoviceNumber, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(19, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(SaveButton)
+                .addGap(62, 62, 62)
+                .addComponent(CancelButton)
+                .addGap(72, 72, 72))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(InoviceNumber))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(InoviceTotal)
+                    .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CancelButton)
+                    .addComponent(SaveButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        SaveButton.addActionListener(this);
+        CancelButton.addActionListener(this);
+
         jLabel7.setText("Inovice table:");
 
-        jLabel8.setText("Inovice items:");
+        HeaderTable.setModel(HeaderModel);
+        jScrollPane5.setViewportView(HeaderTable);
+        HeaderTable.getSelectionModel().addListSelectionListener(this);
+
+        DeleteInoviceButton.setText("Delete inovice");
+        DeleteInoviceButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                DeleteInoviceButtonActionPerformed(evt);
+            }
+        });
+
+        CreateNewInoviceButton.setText("Create new inovice");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 366, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel7)))
+                .addContainerGap(16, Short.MAX_VALUE))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(54, 54, 54)
+                .addComponent(CreateNewInoviceButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(DeleteInoviceButton)
+                .addGap(50, 50, 50))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CreateNewInoviceButton)
+                    .addComponent(DeleteInoviceButton))
+                .addContainerGap(10, Short.MAX_VALUE))
+        );
+
+        DeleteInoviceButton.addActionListener(this);
 
         FileMenu.setText("File");
 
@@ -161,89 +262,21 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(35, 35, 35)
-                                .addComponent(CreateNewInoviceButton)
-                                .addGap(58, 58, 58)
-                                .addComponent(DeleteInoviceButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 365, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(33, 33, 33)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel5)
-                                        .addGap(42, 42, 42)
-                                        .addComponent(InoviceTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addComponent(jLabel4)
-                                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                        .addGap(25, 25, 25)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(InoviceNumber, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                    .addComponent(jLabel8))
-                                .addContainerGap(23, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(SaveButton)
-                                .addGap(79, 79, 79)
-                                .addComponent(CancelButton)
-                                .addGap(69, 69, 69))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel7)
-                        .addContainerGap())))
+                .addContainerGap(17, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel7)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(InoviceNumber))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(InoviceTotal)
-                            .addComponent(jLabel5))
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel8)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(DeleteInoviceButton)
-                    .addComponent(CreateNewInoviceButton)
-                    .addComponent(SaveButton)
-                    .addComponent(CancelButton))
-                .addContainerGap(19, Short.MAX_VALUE))
+                .addGap(16, 16, 16)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(14, Short.MAX_VALUE))
         );
-
-        DeleteInoviceButton.addActionListener(this);
-        SaveButton.addActionListener(this);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -278,10 +311,12 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     // End of variables declaration//GEN-END:variables
 
@@ -289,12 +324,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     public void actionPerformed(ActionEvent e) {
         if( e.getActionCommand().equals("Load File") )
         {
-            try{
                 loadFile();
-            }catch(Exception ex){
-                JOptionPane.showMessageDialog(this, "Load exception", "Test", JOptionPane.INFORMATION_MESSAGE);
-                ex.printStackTrace();
-            }
         }
         else if( e.getActionCommand().equals("Save File") ){
             try{
@@ -306,93 +336,102 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         }
         else if( e.getActionCommand().equals("Create new inovic") ){}
         else if( e.getActionCommand().equals("Delete inovice") ){
-            if( SelectedRow != null){
-                JOptionPane.showMessageDialog(this, "Deleting Inovice", "Test", JOptionPane.INFORMATION_MESSAGE);
-                for(InoviceHeader Header : FileData){
-                    if(Header.getInoviceNumber() == SelectedRow.getInoviceNumber()){
-                        FileData.remove(Header);
-                        break;
-                    }
-                }
-                
-            }
+            deleteInovice(FileData, HeaderModel);
         }
         else if( e.getActionCommand().equals("Save") ){
-            Date InoviceDate = null;
-            try{
-            InoviceDate = new SimpleDateFormat("dd-MM-yyyy").parse( DateTextPane.getText() );
-            JOptionPane.showMessageDialog(this, InoviceDate, "Test", JOptionPane.INFORMATION_MESSAGE); 
-
-            }catch(Exception ex){}
-            String CustomerName = NameTextPane.getText();
-            
-            if(SelectedRow != null){
-                SelectedRow.setCustomerName(CustomerName);
-                SelectedRow.setDate(InoviceDate);
-            }
-            
-            updateHeaderTable(FileData);
-            JOptionPane.showMessageDialog(this, "Save", "Test", JOptionPane.INFORMATION_MESSAGE);
+            save();
         }
-        else if( e.getActionCommand().equals("Cancel") ){}
+        else if( e.getActionCommand().equals("Cancel") ){
+            updateHeaderLabels(SelectedRow);
+        }
         else
             JOptionPane.showMessageDialog(this, "Test", "Test", JOptionPane.INFORMATION_MESSAGE);   
     }
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-        int RowNum = HeaderTable.getSelectedRow();
-        int InvNum = (Integer)HeaderTable.getModel().getValueAt(RowNum, 0);
         
-        for(InoviceHeader Header : FileData){
-            if(Header.getInoviceNumber() == InvNum)
-            {
-                SelectedRow = Header;
-                break;
-            }
-        }
+        if(FileData != null && FileData.size() != 0 && HeaderTable.getSelectedRow() != -1)
+            SelectedRow = FileData.get(HeaderTable.getSelectedRow());
         
         updateHeaderLabels(SelectedRow);
-        updateLineTable(SelectedRow.getLines());
-        JOptionPane.showMessageDialog(this, InvNum, "Header File", JOptionPane.INFORMATION_MESSAGE);
+        updateLineTable(SelectedRow);
+        //JOptionPane.showMessageDialog(this, InvNum, "Header File", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    private void loadFile() throws Exception{
-        FileData.clear();
+    private void loadFile(){
+        clearHeaderData(FileData, HeaderModel);
+        
         JFileChooser window = new JFileChooser();
         JOptionPane.showMessageDialog(this, "Please choose header file", "Header File", JOptionPane.INFORMATION_MESSAGE);
-        int option = window.showOpenDialog(this);
-        if(option == JFileChooser.APPROVE_OPTION){
-            File ChoosenFile = window.getSelectedFile();
-            FileReader Reader = new FileReader(ChoosenFile);
-            BufferedReader Buffer = new BufferedReader(Reader);
-            String Line = Buffer.readLine();
+        int Result = window.showOpenDialog(this);
+        
+        if(Result == JFileChooser.APPROVE_OPTION){
+            String Text = null, Path = window.getSelectedFile().getPath();
+            FileInputStream Stream = null;
+            try{
+                Stream = new FileInputStream(Path);
+                int Size = Stream.available();
+                byte[] File = new byte[Size];
+                Stream.read(File);
+                Text = new String(File);
+            }catch (FileNotFoundException e){
+                JOptionPane.showMessageDialog(this, "FileNotFoundException", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
+                e.printStackTrace();
+            }catch (IOException e){
+                JOptionPane.showMessageDialog(this, "IOException1", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
+                e.printStackTrace(); 
+            }finally{
+                try{
+                    Stream.close();
+                }catch(IOException e){
+                JOptionPane.showMessageDialog(this, "IOException2", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
             
-            while(Line != null){
+            String [] Lines = Text.split("\r?\n|\r");
+            for(String Line : Lines){
                 String [] Content = Line.split(",");
     
                 int invNum = Integer.parseInt(Content[0]);
-                Date invDate = new SimpleDateFormat("dd-MM-yyyy").parse(Content[1]);
+                Date invDate = null;
+                try{
+                invDate = new SimpleDateFormat("dd-MM-yyyy").parse(Content[1]);
+                }catch(Exception e){
+                    JOptionPane.showMessageDialog(this, "Date", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
+                    e.printStackTrace();
+                }
                 String CostumerName = Content[2];
                 
                 InoviceHeader Header = new InoviceHeader(invNum, invDate, CostumerName);
                 FileData.add(Header);
-                Line = Buffer.readLine();
             }
-            Buffer.close();
-            Reader.close();
             
             JOptionPane.showMessageDialog(this, "Please choose line file", "Header File", JOptionPane.INFORMATION_MESSAGE);
-            option = window.showOpenDialog(this);
-            if(option == JFileChooser.APPROVE_OPTION){
-                ChoosenFile = window.getSelectedFile();
-                Reader = new FileReader(ChoosenFile);
-                Buffer = new BufferedReader(Reader);
-                Line = Buffer.readLine();
+            Result = window.showOpenDialog(this);
+            if(Result == JFileChooser.APPROVE_OPTION){
+                Text = null;
+                Path = window.getSelectedFile().getPath();
+                Stream = null;
+                try{
+                    Stream = new FileInputStream(Path);
+                    int Size = Stream.available();
+                    byte[] File = new byte[Size];
+                    Stream.read(File);
+                    Text = new String(File);
+                }catch (FileNotFoundException e){
+                    e.printStackTrace();
+                }catch (IOException e){
+                    e.printStackTrace(); 
+                }finally{
+                    try{
+                        Stream.close();
+                    }catch(IOException e){}
+                }
                 
-                while(Line != null){
+                Lines = Text.split("\r?\n|\r");
+                for(String Line : Lines){
                     String [] Content = Line.split(",");
-
                     int InvNum = Integer.parseInt(Content[0]);
                     String ItemName = Content[1];
                     float ItemPrice = Integer.parseInt(Content[2]);
@@ -405,14 +444,10 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
                             Header.addLine(InvLine);
                         }
                     }
-                    
-                    Line = Buffer.readLine();
                 }
-                Buffer.close();
-                Reader.close();
             }
         }
-        updateHeaderTable(FileData);
+        updateHeaderTable(FileData, HeaderModel);
     }
     
     private void saveFile() throws Exception{
@@ -438,33 +473,86 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
 
         }
     }
-
-    private void updateHeaderTable(ArrayList<InoviceHeader> Headers){
-        String[] col = {"No.", "Date", "Costumer", "Total"};
-        //String[] col = new String [] {"No.", "Date", "Costumer", "Total"};
-        DefaultTableModel tableModel = new DefaultTableModel(col, 0);
-        
-        for(InoviceHeader Header: FileData){
-            Object[] obj = {Header.getInoviceNumber(), Header.getInoviceDate(), Header.getCustomerName(), Header.getTotal()};
-            tableModel.addRow(obj);
+    
+    private void deleteInovice(ArrayList<InoviceHeader> Headers, DefaultTableModel Model){
+        if(SelectedRow != null && HeaderTable.getSelectedRow() != -1){
+            Headers.remove(HeaderTable.getSelectedRow());
+            Model.removeRow(HeaderTable.getSelectedRow());
+            
+            SelectedRow = null;
+            updateHeaderLabels(SelectedRow);
+            updateLineTable(SelectedRow);
         }
-        HeaderTable.setModel(tableModel);
-        HeaderTable.revalidate();
+    }
+
+    private void updateHeaderTable(ArrayList<InoviceHeader> Headers, DefaultTableModel Model){     
+        String [][] Data = new String[Headers.size()][4];
+        
+        for(int count = 0; count < Data.length ;count++){
+            Data[count] = new String[]{
+                    String.valueOf(Headers.get(count).getInoviceNumber()),
+                    String.valueOf(Headers.get(count).getInoviceDate()),
+                    Headers.get(count).getCustomerName(),
+                    String.valueOf(Headers.get(count).getTotal()),
+            };
+        }
+        
+        Model = new DefaultTableModel(Data, new String [] {"Inovice Number", "Invoice Date", "Customer Name", "Total"});
+        HeaderModel = Model;
+        HeaderTable.setModel(Model);
+        
     }
     
-    private void updateLineTable(ArrayList<InoviceLine> Lines){
+    private void updateLineTable(InoviceHeader Header){
         String[] col = {"No.", "Item name", "Item price", "Count", "Item total"};
         DefaultTableModel tableModel = new DefaultTableModel(col, 0);
-        for(InoviceLine Line: Lines){
-            
-            Object[] obj = {Line.getInoviceNumber(), Line.getItemName(), Line.getItemPrice(), Line.getItemCount(), Line.getItemTotal()};
-            tableModel.addRow(obj);
-            LineTable.setModel(tableModel);
+        
+        if(Header != null){
+            ArrayList<InoviceLine> Lines = Header.getLines();
+            for(InoviceLine Line: Lines){
+                Object[] obj = {Line.getInoviceNumber(), Line.getItemName(), Line.getItemPrice(), Line.getItemCount(), Line.getItemTotal()};
+                tableModel.addRow(obj);
+            }
         }
+        LineTable.setModel(tableModel);
+        
     }
 
     private void updateHeaderLabels(InoviceHeader SelectedHeader) {
-        InoviceNumber.setText(Integer.toString(SelectedHeader.getInoviceNumber()));
-        InoviceTotal.setText(Float.toString(SelectedHeader.getTotal()));
+        if(SelectedHeader != null){
+            InoviceNumber.setText(Integer.toString(SelectedHeader.getInoviceNumber()));
+            DateTextPane.setText(SelectedHeader.getInoviceDate().toString());
+            NameTextPane.setText(SelectedHeader.getCustomerName());
+            InoviceTotal.setText(Float.toString(SelectedHeader.getTotal()));
+        }else{
+            InoviceNumber.setText("");
+            DateTextPane.setText("");
+            NameTextPane.setText("");
+            InoviceTotal.setText("");
+        }
+    }
+    
+    private void clearHeaderData(ArrayList<InoviceHeader> Headers, DefaultTableModel Model){
+        HeaderTable.clearSelection();
+        SelectedRow = null;
+        Headers.clear();
+        while(Model.getRowCount() != 0)
+            Model.removeRow(0);
+    }
+
+    private void save() {
+        Date InoviceDate = null;
+        try{
+        InoviceDate = new SimpleDateFormat("dd-MM-yyyy").parse( DateTextPane.getText() );
+        }catch(Exception ex){}
+        String CustomerName = NameTextPane.getText();
+
+        if(SelectedRow != null){
+            SelectedRow.setCustomerName(CustomerName);
+            SelectedRow.setDate(InoviceDate);
+        }
+
+        updateHeaderTable(FileData, HeaderModel);
+        updateHeaderLabels(SelectedRow);
     }
 }
