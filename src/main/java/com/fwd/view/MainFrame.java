@@ -241,6 +241,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         );
 
         DeleteInoviceButton.addActionListener(this);
+        CreateNewInoviceButton.addActionListener(this);
 
         FileMenu.setText("File");
 
@@ -289,7 +290,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     /**
      * @param args the command line arguments
      */
-    
+    private CreateInoviceDialog CreateDialog;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CancelButton;
     private javax.swing.JButton CreateNewInoviceButton;
@@ -334,7 +335,9 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
                 ex.printStackTrace();
             }
         }
-        else if( e.getActionCommand().equals("Create new inovic") ){}
+        else if( e.getActionCommand().equals("Create new inovice") ){
+            createInvoiceDialog();
+        }
         else if( e.getActionCommand().equals("Delete inovice") ){
             deleteInovice(FileData, HeaderModel);
         }
@@ -343,6 +346,25 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         }
         else if( e.getActionCommand().equals("Cancel") ){
             updateHeaderLabels(SelectedRow);
+        }
+        else if( e.getActionCommand().equals("Create Inovice") ){
+            String CustomerName = CreateDialog.getName();
+            String Date = CreateDialog.getDate();
+            
+            Date InoviceDate = new Date();
+            try{
+            InoviceDate = new SimpleDateFormat("dd-MM-yyyy").parse( Date );
+            }catch(Exception ex){
+                JOptionPane.showMessageDialog(this, "Invalid date: Setting date to current date", "Invalid date notice", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+            InoviceHeader NewInovice = new InoviceHeader(FileData.size(), InoviceDate, CustomerName);
+            FileData.add(NewInovice);
+            updateHeaderTable(FileData, HeaderModel);
+        }
+        else if( e.getActionCommand().equals("Cancel Inovice") ){
+            CreateDialog.setVisible(false);
+            CreateDialog.dispose();
         }
         else
             JOptionPane.showMessageDialog(this, "Test", "Test", JOptionPane.INFORMATION_MESSAGE);   
@@ -509,10 +531,11 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         
         if(Header != null){
             ArrayList<InoviceLine> Lines = Header.getLines();
-            for(InoviceLine Line: Lines){
-                Object[] obj = {Line.getInoviceNumber(), Line.getItemName(), Line.getItemPrice(), Line.getItemCount(), Line.getItemTotal()};
-                tableModel.addRow(obj);
-            }
+            if(Lines != null && Lines.size() != 0)
+                for(InoviceLine Line: Lines){
+                    Object[] obj = {Line.getInoviceNumber(), Line.getItemName(), Line.getItemPrice(), Line.getItemCount(), Line.getItemTotal()};
+                    tableModel.addRow(obj);
+                }
         }
         LineTable.setModel(tableModel);
         
@@ -554,5 +577,10 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
 
         updateHeaderTable(FileData, HeaderModel);
         updateHeaderLabels(SelectedRow);
+    }
+
+    private void createInvoiceDialog() {
+        CreateDialog = new CreateInoviceDialog(this, true);
+        CreateDialog.setVisible(true);
     }
 }
