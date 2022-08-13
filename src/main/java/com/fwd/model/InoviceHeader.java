@@ -20,7 +20,7 @@ public class InoviceHeader {
         this.InoviceNumber = InoviceNumber;
         this.CustomerName = CustomerName;
         this.InoviceDate = InoviceDate;
-        this.InoviceLines = null;
+        this.InoviceLines = new ArrayList<>();
     }
     
     public ArrayList<InoviceLine> getLines(){

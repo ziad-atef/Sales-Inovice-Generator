@@ -4,6 +4,7 @@
  */
 package com.fwd.view;
 
+import com.fwd.model.FileOperations;
 import com.fwd.model.InoviceHeader;
 import com.fwd.model.InoviceLine;
 import java.awt.event.ActionEvent;
@@ -19,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
@@ -31,8 +34,10 @@ import javax.swing.table.DefaultTableModel;
  */
 public class MainFrame extends javax.swing.JFrame implements ActionListener, ListSelectionListener{
 
+    FileOperations controller;
     ArrayList<InoviceHeader> FileData;
-    InoviceHeader SelectedRow;
+    InoviceHeader SelectedInv;
+    InoviceLine SelectedLine;
     DefaultTableModel HeaderModel;
     /**
      * Creates new form MainFrame
@@ -40,9 +45,11 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     public MainFrame() {
         HeaderModel = new DefaultTableModel(new String [] {"Inovice Number", "Invoice Date", "Customer Name", "Total"},0);
         FileData = new ArrayList<>();
-        SelectedRow = null;
+        SelectedInv = null;
+        SelectedLine = null;
+        controller = new FileOperations();
         initComponents();
-        
+        loadFile(System.getProperty("user.dir") + "\\data\\InvoiceHeader.csv", System.getProperty("user.dir") + "\\data\\InvoiceLine.csv");
     }
 
     /**
@@ -115,6 +122,14 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         ));
         LineTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane4.setViewportView(LineTable);
+        LineTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (LineTable.getSelectedRow() > -1 && SelectedInv != null) {
+                    SelectedLine = SelectedInv.getLines().get(LineTable.getSelectedRow());
+                }
+            }
+        });
 
         SaveButton.setText("Create new line");
 
@@ -194,6 +209,8 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         jLabel7.setText("Inovice table:");
 
         HeaderTable.setModel(HeaderModel);
+        HeaderTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        HeaderTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane5.setViewportView(HeaderTable);
         HeaderTable.getSelectionModel().addListSelectionListener(this);
 
@@ -326,14 +343,38 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     public void actionPerformed(ActionEvent e) {
         if( e.getActionCommand().equals("Load File") )
         {
-                loadFile();
+            String HeaderPath = null;
+            String LinePath = null;
+            
+            
+            JFileChooser window = new JFileChooser();
+            JOptionPane.showMessageDialog(this, "Please choose header file", "Header File", JOptionPane.INFORMATION_MESSAGE);
+            int Result = window.showOpenDialog(this);
+            if(Result == JFileChooser.APPROVE_OPTION)
+                HeaderPath = window.getSelectedFile().getPath();
+            
+            window = new JFileChooser();
+            JOptionPane.showMessageDialog(this, "Please choose line file", "Line File", JOptionPane.INFORMATION_MESSAGE);
+            Result = window.showOpenDialog(this);
+            if(Result == JFileChooser.APPROVE_OPTION)
+                LinePath = window.getSelectedFile().getPath();
+            
+            loadFile(HeaderPath, LinePath);
         }
         else if( e.getActionCommand().equals("Save File") ){
+            String FolderPath = null;
+            
+            JFileChooser window = new JFileChooser();
+            JOptionPane.showMessageDialog(this, "Please choose FOLDER to save data into", "Save data", JOptionPane.INFORMATION_MESSAGE);
+            window.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int Result = window.showOpenDialog(this);
+            if(Result == JFileChooser.APPROVE_OPTION)
+                FolderPath = window.getSelectedFile().getPath();
+            
             try{
-                saveFile();
+                saveFile(FolderPath);
             }catch(Exception ex){
                 JOptionPane.showMessageDialog(this, "Save exception", "Test", JOptionPane.INFORMATION_MESSAGE);
-                ex.printStackTrace();
             }
         }
         else if( e.getActionCommand().equals("Create new inovice") ){
@@ -365,7 +406,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
             createItemDialog();
         }
         else if( e.getActionCommand().equals("Delete line")) {
-            
+            deleteLine( (DefaultTableModel)LineTable.getModel() );
         }
         else if( e.getActionCommand().equals("Create Line") ){
             String ItemPriceString = CreateLineDialog.getPrice();
@@ -375,12 +416,12 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
             float ItemPrice = Float.parseFloat(ItemPriceString);
             int ItemCount = Integer.parseInt(ItemCountString);
             
-            InoviceLine NewLine = new InoviceLine( SelectedRow.getInoviceNumber(), ItemName, ItemPrice, ItemCount);
-            SelectedRow.getLines().add(NewLine);
+            InoviceLine NewLine = new InoviceLine( SelectedInv.getInoviceNumber(), ItemName, ItemPrice, ItemCount);
+            SelectedInv.getLines().add(NewLine);
            
             updateHeaderTable(FileData, HeaderModel);
-            updateHeaderLabels(SelectedRow);
-            updateLineTable(SelectedRow);
+            updateHeaderLabels(SelectedInv);
+            updateLineTable(SelectedInv);
         }
         else if( e.getActionCommand().equals("Cancel Line") ){
             CreateLineDialog.setVisible(false);
@@ -394,136 +435,38 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     public void valueChanged(ListSelectionEvent e) {
         
         if(FileData != null && FileData.size() != 0 && HeaderTable.getSelectedRow() != -1)
-            SelectedRow = FileData.get(HeaderTable.getSelectedRow());
+            SelectedInv = FileData.get(HeaderTable.getSelectedRow());
         
-        updateHeaderLabels(SelectedRow);
-        updateLineTable(SelectedRow);
+        updateHeaderLabels(SelectedInv);
+        updateLineTable(SelectedInv);
         //JOptionPane.showMessageDialog(this, InvNum, "Header File", JOptionPane.INFORMATION_MESSAGE);
+        
     }
     
-    private void loadFile(){
-        clearHeaderData(FileData, HeaderModel);
-        
-        JFileChooser window = new JFileChooser();
-        JOptionPane.showMessageDialog(this, "Please choose header file", "Header File", JOptionPane.INFORMATION_MESSAGE);
-        int Result = window.showOpenDialog(this);
-        
-        if(Result == JFileChooser.APPROVE_OPTION){
-            String Text = null, Path = window.getSelectedFile().getPath();
-            FileInputStream Stream = null;
-            try{
-                Stream = new FileInputStream(Path);
-                int Size = Stream.available();
-                byte[] File = new byte[Size];
-                Stream.read(File);
-                Text = new String(File);
-            }catch (FileNotFoundException e){
-                JOptionPane.showMessageDialog(this, "FileNotFoundException", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
-                e.printStackTrace();
-            }catch (IOException e){
-                JOptionPane.showMessageDialog(this, "IOException1", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
-                e.printStackTrace(); 
-            }finally{
-                try{
-                    Stream.close();
-                }catch(IOException e){
-                JOptionPane.showMessageDialog(this, "IOException2", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-            
-            String [] Lines = Text.split("\r?\n|\r");
-            for(String Line : Lines){
-                String [] Content = Line.split(",");
     
-                int invNum = Integer.parseInt(Content[0]);
-                Date invDate = null;
-                try{
-                invDate = new SimpleDateFormat("dd-MM-yyyy").parse(Content[1]);
-                }catch(Exception e){
-                    JOptionPane.showMessageDialog(this, "Date", "Load Exception", JOptionPane.INFORMATION_MESSAGE);
-                    e.printStackTrace();
-                }
-                String CostumerName = Content[2];
-                
-                InoviceHeader Header = new InoviceHeader(invNum, invDate, CostumerName);
-                FileData.add(Header);
-            }
-            
-            JOptionPane.showMessageDialog(this, "Please choose line file", "Header File", JOptionPane.INFORMATION_MESSAGE);
-            Result = window.showOpenDialog(this);
-            if(Result == JFileChooser.APPROVE_OPTION){
-                Text = null;
-                Path = window.getSelectedFile().getPath();
-                Stream = null;
-                try{
-                    Stream = new FileInputStream(Path);
-                    int Size = Stream.available();
-                    byte[] File = new byte[Size];
-                    Stream.read(File);
-                    Text = new String(File);
-                }catch (FileNotFoundException e){
-                    e.printStackTrace();
-                }catch (IOException e){
-                    e.printStackTrace(); 
-                }finally{
-                    try{
-                        Stream.close();
-                    }catch(IOException e){}
-                }
-                
-                Lines = Text.split("\r?\n|\r");
-                for(String Line : Lines){
-                    String [] Content = Line.split(",");
-                    int InvNum = Integer.parseInt(Content[0]);
-                    String ItemName = Content[1];
-                    float ItemPrice = Integer.parseInt(Content[2]);
-                    int ItemCount = Integer.parseInt(Content[3]);
-
-                    InoviceLine InvLine = new InoviceLine(InvNum, ItemName, ItemPrice, ItemCount);
-                    for(InoviceHeader Header: FileData){
-                        if(Header.getInoviceNumber() == InvNum)
-                        {
-                            Header.addLine(InvLine);
-                        }
-                    }
-                }
-            }
+    private void loadFile(String HeaderPath, String LinePath){
+        try {
+            FileData = controller.readFile(HeaderPath, LinePath);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Load file exception", "Invalid date notice", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
+        clearHeaderData(HeaderModel);
         updateHeaderTable(FileData, HeaderModel);
     }
     
-    private void saveFile() throws Exception{
-        JFileChooser window = new JFileChooser();
-        JOptionPane.showMessageDialog(this, "Please choose header file", "Header File", JOptionPane.INFORMATION_MESSAGE);
-        int Result = window.showSaveDialog(this);
-        
-        if(Result == JFileChooser.APPROVE_OPTION){
-            String Path = window.getSelectedFile().getPath();
-            if(!Path.contains(".csv"))
-                Path += ".csv";
-            FileOutputStream Stream = new FileOutputStream(Path);
-
-            
-            for(InoviceHeader Header : FileData){
-                String Data = Header.getInoviceNumber()  + "," + Header.getInoviceDate().toString() + "," + Header.getCustomerName();
-                byte [] Line= Data.getBytes();
-                Stream.write(Line);
-            }
-            
-            Stream.close();
-            
-
-        }
+    private void saveFile(String FolderPath) throws Exception{
+        controller.writeFile(FileData, FolderPath);
     }
     
     private void deleteInovice(ArrayList<InoviceHeader> Headers, DefaultTableModel Model){
-        if(SelectedRow != null && HeaderTable.getSelectedRow() != -1){
+        if(SelectedInv != null && HeaderTable.getSelectedRow() != -1){
             Headers.remove(HeaderTable.getSelectedRow());
             Model.removeRow(HeaderTable.getSelectedRow());
             
-            SelectedRow = null;
-            updateHeaderLabels(SelectedRow);
-            updateLineTable(SelectedRow);
+            SelectedInv = null;
+            updateHeaderLabels(SelectedInv);
+            updateLineTable(SelectedInv);
         }
     }
 
@@ -533,7 +476,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         for(int count = 0; count < Data.length ;count++){
             Data[count] = new String[]{
                     String.valueOf(Headers.get(count).getInoviceNumber()),
-                    String.valueOf(Headers.get(count).getInoviceDate()),
+                    String.valueOf(new SimpleDateFormat("dd-M-yyyy").format(Headers.get(count).getInoviceDate() )),
                     Headers.get(count).getCustomerName(),
                     String.valueOf(Headers.get(count).getTotal()),
             };
@@ -564,7 +507,7 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     private void updateHeaderLabels(InoviceHeader SelectedHeader) {
         if(SelectedHeader != null){
             InoviceNumber.setText(Integer.toString(SelectedHeader.getInoviceNumber()));
-            DateTextPane.setText(SelectedHeader.getInoviceDate().toString());
+            DateTextPane.setText(new SimpleDateFormat("dd-M-yyyy").format(SelectedHeader.getInoviceDate() ));
             NameTextPane.setText(SelectedHeader.getCustomerName());
             InoviceTotal.setText(Float.toString(SelectedHeader.getTotal()));
         }else{
@@ -575,10 +518,9 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         }
     }
     
-    private void clearHeaderData(ArrayList<InoviceHeader> Headers, DefaultTableModel Model){
+    private void clearHeaderData(DefaultTableModel Model){
         HeaderTable.clearSelection();
-        SelectedRow = null;
-        Headers.clear();
+        SelectedInv = null;
         while(Model.getRowCount() != 0)
             Model.removeRow(0);
     }
@@ -590,13 +532,13 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         }catch(Exception ex){}
         String CustomerName = NameTextPane.getText();
 
-        if(SelectedRow != null){
-            SelectedRow.setCustomerName(CustomerName);
-            SelectedRow.setDate(InoviceDate);
+        if(SelectedInv != null){
+            SelectedInv.setCustomerName(CustomerName);
+            SelectedInv.setDate(InoviceDate);
         }
 
         updateHeaderTable(FileData, HeaderModel);
-        updateHeaderLabels(SelectedRow);
+        updateHeaderLabels(SelectedInv);
     }
 
     private void createInvoiceDialog() {
@@ -605,9 +547,21 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     }
     
     private void createItemDialog() {
-        if(SelectedRow != null){
+        if(SelectedInv != null){
             CreateLineDialog = new  CreateItemDialog(this, true);
             CreateLineDialog.setVisible(true);
+        }
+    }
+
+    private void deleteLine(DefaultTableModel Model){
+        if(SelectedInv != null && SelectedLine != null && HeaderTable.getSelectedRow() > -1 && LineTable.getSelectedRow() > -1){
+            SelectedInv.getLines().remove(LineTable.getSelectedRow());
+            Model.removeRow(LineTable.getSelectedRow());
+            
+            SelectedLine = null;
+            updateHeaderTable(FileData, HeaderModel);
+            updateHeaderLabels(SelectedInv);
+            updateLineTable(SelectedInv);
         }
     }
 }
