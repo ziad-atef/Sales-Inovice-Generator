@@ -14,7 +14,7 @@ public class InoviceLine {
     float ItemPrice;
     int ItemCount;
     
-    public InoviceLine(int InoviceNumber,String ItemName,float ItemPrice,int ItemCount){
+    public InoviceLine(int InoviceNumber, String ItemName, float ItemPrice, int ItemCount){
         this.InoviceNumber = InoviceNumber;
         this.ItemCount = ItemCount;
         this.ItemName = ItemName;

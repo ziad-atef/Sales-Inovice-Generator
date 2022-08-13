@@ -116,9 +116,9 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         LineTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane4.setViewportView(LineTable);
 
-        SaveButton.setText("Save");
+        SaveButton.setText("Create new line");
 
-        CancelButton.setText("Cancel");
+        CancelButton.setText("Delete line");
 
         jLabel8.setText("Inovice items:");
 
@@ -154,9 +154,9 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(SaveButton)
-                .addGap(62, 62, 62)
+                .addGap(72, 72, 72)
                 .addComponent(CancelButton)
-                .addGap(72, 72, 72))
+                .addGap(42, 42, 42))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -290,7 +290,8 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     /**
      * @param args the command line arguments
      */
-    private CreateInoviceDialog CreateDialog;
+    private CreateInoviceDialog CreateInvDialog;
+    private CreateItemDialog CreateLineDialog;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CancelButton;
     private javax.swing.JButton CreateNewInoviceButton;
@@ -341,15 +342,9 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
         else if( e.getActionCommand().equals("Delete inovice") ){
             deleteInovice(FileData, HeaderModel);
         }
-        else if( e.getActionCommand().equals("Save") ){
-            save();
-        }
-        else if( e.getActionCommand().equals("Cancel") ){
-            updateHeaderLabels(SelectedRow);
-        }
         else if( e.getActionCommand().equals("Create Inovice") ){
-            String CustomerName = CreateDialog.getName();
-            String Date = CreateDialog.getDate();
+            String CustomerName = CreateInvDialog.getName();
+            String Date = CreateInvDialog.getDate();
             
             Date InoviceDate = new Date();
             try{
@@ -363,8 +358,33 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
             updateHeaderTable(FileData, HeaderModel);
         }
         else if( e.getActionCommand().equals("Cancel Inovice") ){
-            CreateDialog.setVisible(false);
-            CreateDialog.dispose();
+            CreateInvDialog.setVisible(false);
+            CreateInvDialog.dispose();
+        }
+        else if( e.getActionCommand().equals("Create new line")) {
+            createItemDialog();
+        }
+        else if( e.getActionCommand().equals("Delete line")) {
+            
+        }
+        else if( e.getActionCommand().equals("Create Line") ){
+            String ItemPriceString = CreateLineDialog.getPrice();
+            String ItemCountString = CreateLineDialog.getCount();
+            
+            String ItemName = CreateLineDialog.getName();
+            float ItemPrice = Float.parseFloat(ItemPriceString);
+            int ItemCount = Integer.parseInt(ItemCountString);
+            
+            InoviceLine NewLine = new InoviceLine( SelectedRow.getInoviceNumber(), ItemName, ItemPrice, ItemCount);
+            SelectedRow.getLines().add(NewLine);
+           
+            updateHeaderTable(FileData, HeaderModel);
+            updateHeaderLabels(SelectedRow);
+            updateLineTable(SelectedRow);
+        }
+        else if( e.getActionCommand().equals("Cancel Line") ){
+            CreateLineDialog.setVisible(false);
+            CreateLineDialog.dispose(); 
         }
         else
             JOptionPane.showMessageDialog(this, "Test", "Test", JOptionPane.INFORMATION_MESSAGE);   
@@ -580,7 +600,14 @@ public class MainFrame extends javax.swing.JFrame implements ActionListener, Lis
     }
 
     private void createInvoiceDialog() {
-        CreateDialog = new CreateInoviceDialog(this, true);
-        CreateDialog.setVisible(true);
+        CreateInvDialog = new CreateInoviceDialog(this, true);
+        CreateInvDialog.setVisible(true);
+    }
+    
+    private void createItemDialog() {
+        if(SelectedRow != null){
+            CreateLineDialog = new  CreateItemDialog(this, true);
+            CreateLineDialog.setVisible(true);
+        }
     }
 }

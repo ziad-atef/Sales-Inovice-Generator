@@ -42,7 +42,7 @@ public class InoviceHeader {
         float total = 0;
         if(InoviceLines != null && InoviceLines.size() != 0)
             for(InoviceLine Line : InoviceLines){
-                total += Line.getItemPrice();
+                total += Line.getItemPrice() * Line.getItemCount();
             }
         return total;
     }
